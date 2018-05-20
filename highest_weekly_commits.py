@@ -8,16 +8,21 @@ import os
 # Main Script
 def main():
     """ Takes Question 1 output uploaded to hackerspace servor, and parses out date"""
-    grep_str = 'grep -w date d3_commits_1yrfromtoday.txt > date_in_year'
+    grep_str = 'grep -n2 message d3_commits_1yrfromtoday.txt > tmp.txt'
+    os.system(grep_str)
+    grep_str = 'grep -w date tmp.txt > dates_in_year'
     os.system(grep_str)
     commit_dates = []
     # open new file and append commit dates to new list
-    fp = open('date_in_year')
+    fp = open('dates_in_year')
     # readlines in input, should contain dates from the github api d3.js curl output
+    count = 0
     for line in fp.readlines():
         c = shlex.split(line)
-        commit_date = translate_commit_date(c[1])
+        commit_date = translate_commit_date(c[-1])
         commit_dates.append(commit_date)
+        count += 1
+    print count
     fp.close()
     # Call the date histogram function and term hist values and date ranges
     date_hist, date_list = create_date_hist(commit_dates)
@@ -27,7 +32,8 @@ def main():
     for bin in max_bin_indicies:
         print "Week last year with most commits: "
         print date_list[bin]
-
+        print "Number of commits in week"
+        print max_freq
 
 def translate_commit_date(timestamp):
     """ translate date to time
@@ -60,8 +66,6 @@ def create_date_hist(commit_timestamps):
         freq_count = 0
         for x in range(0, days_in_week):
             date_in_range = current_date - timedelta(days = x)
-            week_index = date_in_range.weekday()
-            print(week_index)
             date_str = format_date(date_in_range)
             for dt in range(0,len(commit_timestamps)):
                 tmp = commit_timestamps[dt]
